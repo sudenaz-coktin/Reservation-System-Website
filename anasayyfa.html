@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <link rel="icon" href="Ekran görüntüsü 2025-09-19 204409.png    ">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restoran Yönetim Sistemi</title>
+    <link rel="stylesheet" href="anasayfa.css">
+    <style>
+        /* Giriş Ekranı için Stil Tanımlamaları */
+        #login-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        #login-box {
+            background: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 350px;
+        }
+        
+        #login-box h2 {
+            margin-bottom: 25px;
+            color: #333;
+            font-size: 24px;
+        }
+
+        .login-options button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .login-options .btn-personel {
+            background-color: #5cb85c;
+            color: white;
+        }
+
+        .login-options .btn-personel:hover {
+            background-color: #4cae4c;
+        }
+
+        .login-options .btn-yonetici {
+            background-color: #0275d8;
+            color: white;
+        }
+
+        .login-options .btn-yonetici:hover {
+            background-color: #025aa5;
+        }
+
+        .password-input-container {
+            margin-top: 15px;
+        }
+
+        .password-input-container input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        .password-input-container button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            background-color: #f0ad4e;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .password-input-container button:hover {
+            background-color: #ec971f;
+        }
+
+        #login-error {
+            color: #d9534f;
+            margin-top: 10px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* Ana İçeriği Gizle/Göster */
+        #main-content {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div id="login-box">
+            <h2>Giriş Yap</h2>
+            <div class="login-options">
+                <button class="btn-personel" onclick="girisSecimi('personel')">👨‍🍳 Personel Girişi</button>
+                <button class="btn-yonetici" onclick="girisSecimi('yonetici')">🧑‍💼 Yönetici Girişi</button>
+            </div>
+            <div id="password-container" class="password-input-container" style="display: none;">
+                <input type="password" id="password-input" placeholder="Şifrenizi girin">
+                <button onclick="girisYap()">Giriş Yap</button>
+            </div>
+            <div id="login-error"></div>
+        </div>
+    </div>
+
+    <div id="main-content">
+        <div class="container">
+            <div class="header">
+                <!-- Personel için çıkış butonu - her sayfada görünür -->
+                <button id="personel-cikis-btn" class="personel-cikis" onclick="cikisYap()" style="display: none;">Çıkış Yap</button>
+                
+                <h1>🍽️ Restoran Yönetim Sistemi</h1>
+                <div class="nav-tabs">
+                    <button class="nav-tab active" onclick="showSection('masa-yonetimi')">Masa Yönetimi</button>
+                    <button class="nav-tab" onclick="showSection('urun-yonetimi')">Ürün Yönetimi</button>
+                    <button class="nav-tab" onclick="showSection('odeme-islem')">Ödeme İşlemleri</button>
+                    <button class="nav-tab" id="raporlar-tab" onclick="showSection('raporlar')">Raporlar</button>
+                    <button class="nav-tab" id="ayarlar-tab" onclick="showSection('ayarlar')">Ayarlar</button>
+                </div>
+            </div>
+
+            <div id="masa-yonetimi" class="content-section active">
+                <div class="section-header">
+                    <h2>🏢 Masa Yönetimi</h2>
+                    <div class="section-controls">
+                        <button class="btn btn-primary" onclick="masaEkleModalAc()">+ Masa Ekle</button>
+                        <!-- Masa Sil butonu eklendi -->
+                        <button class="btn btn-danger" onclick="masaSilModalAc()">🗑️ Masa Sil</button>
+                        <button class="btn btn-info" onclick="masaAdDegistirModalAc()">Masa Adı Değiştir</button>
+                        
+                    </div>
+                </div>
+
+                <div class="masa-durum-legend">
+                    <div class="legend-item">
+                        <span class="legend-color bos"></span>
+                        <span>Boş Masalar</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color dolu"></span>
+                        <span>Dolu Masalar</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color rezerve"></span>
+                        <span>Rezerveli Masalar</span>
+                    </div>
+                </div>
+
+                <div class="masa-grid" id="masaGrid">
+                </div>
+
+                <div class="masa-istatistik">
+                    <div class="istatistik-card">
+                        <h3>Boş Masa</h3>
+                        <span class="istatistik-sayi bos" id="bosMasa">0</span>
+                    </div>
+                    <div class="istatistik-card">
+                        <h3>Dolu Masa</h3>
+                        <span class="istatistik-sayi dolu" id="doluMasa">0</span>
+                    </div>
+                    <div class="istatistik-card">
+                        <h3>Rezerveli</h3>
+                        <span class="istatistik-sayi rezerve" id="rezerveMasa">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="urun-yonetimi" class="content-section">
+                <div class="section-header">
+                    <h2>🍕 Ürün Yönetimi</h2>
+                    <div class="section-controls">
+                        <button class="btn btn-primary" onclick="yeniUrunEkle()">+ Yeni Ürün</button>
+                    </div>
+                </div>
+
+                <div class="menu-kategoriler" id="menuKategoriler">
+                    <button class="kategori-btn active" onclick="kategoriFiltrele('hepsi')">Hepsi</button>
+                    <button class="kategori-btn" onclick="kategoriFiltrele('ana-yemek')">Ana Yemekler</button>
+                    <button class="kategori-btn" onclick="kategoriFiltrele('icecek')">İçecekler</button>
+                    <button class="kategori-btn" onclick="kategoriFiltrele('tatli')">Tatlılar</button>
+                    <button class="kategori-btn" onclick="kategoriFiltrele('salata')">Salatalar</button>
+                </div>
+
+                <div class="urun-liste" id="urunListesi">
+                </div>
+            </div>
+
+            <div id="odeme-islem" class="content-section">
+                <div class="section-header">
+                    <h2>💳 Ödeme İşlemleri</h2>
+                    <!-- Fiş yazdırma butonu eklendi -->
+                    <div class="section-controls">
+                        <button class="btn btn-info" onclick="fisYazdirModalAc()">🖨️ Fiş Yazdır</button>
+                    </div>
+                </div>
+                <!-- Fiş Yazdırma Modalı -->
+<div id="fisModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="fisModalBaslik">Fiş Yazdır</h2>
+      <span class="close" onclick="modalKapat()">&times;</span>
+    </div>
+    <div class="modal-body" id="fisModalIcerik">
+      <!-- Dinamik olarak JS ile fiş içeriği gelecek -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-success" onclick="fisYazdir()">🖨️ Yazdır</button>
+      <button class="btn btn-secondary" onclick="modalKapat()">Kapat</button>
+    </div>
+  </div>
+</div>
+
+
+                <div class="odeme-container">
+                    <div class="odeme-sol">
+                        <div class="masa-sec">
+                            <h3>Masa Seç</h3>
+                            <select id="odemeMasaSec" class="form-select" onchange="masaAdisyonGetir(this.value)">
+                                <option value="">Masa seçiniz...</option>
+                            </select>
+                        </div>
+
+                        <div class="adisyon-detay" id="odemeAdisyonDetay">
+                        </div>
+                    </div>
+
+                    <div class="odeme-sag">
+                        <div class="odeme-ozeti">
+                            <h3>Ödeme Özeti</h3>
+                            <div class="ozet-satir">
+                                <span>Ara Toplam:</span>
+                                <span id="araToplam">0.00 ₺</span>
+                            </div>
+                            <div class="ozet-satir">
+                                <span>İndirim:</span>
+                                <span id="indirimTutari">0.00 ₺</span>
+                            </div>
+                            <div class="ozet-satir toplam">
+                                <span>TOPLAM:</span>
+                                <span id="toplamTutar">0.00 ₺</span>
+                            </div>
+                        </div>
+
+                        <div class="odeme-yontemleri">
+                            <h3>Ödeme Yöntemi</h3>
+                            <div class="odeme-secenekleri">
+                                <button class="odeme-btn nakit active" onclick="odemeYontemiSec('nakit')">💵 Nakit</button>
+                                <button class="odeme-btn kart" onclick="odemeYontemiSec('kart')">💳 Kart</button>
+                                <button class="odeme-btn dijital" onclick="odemeYontemiSec('dijital')">📱 Dijital</button>
+                            </div>
+                        </div>
+
+                        <div class="bahsis-hesap">
+                            <h3>Bahşiş</h3>
+                            <div class="bahsis-butonlar">
+                                <label for="bahsis">Bahşiş (₺):</label>
+                                <input type="number" id="bahsis" placeholder="Bahşiş girin">
+                            </div>
+                        </div>
+
+                        <button class="btn btn-success btn-large" onclick="odemeAl()">💰 Ödeme Al</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="raporlar" class="content-section">
+                <div class="section-header">
+                    <h2>📊 Raporlar</h2>
+                    <div class="section-controls">
+                        <select class="form-select" id="raporTuru" onchange="raporGoster(this.value)">
+                            <option value="gunluk">Günlük Rapor</option>
+                            <option value="haftalik">Haftalık Rapor</option>
+                            <option value="aylik">Aylık Rapor</option>
+                            <option value="urun">Ürün Satış Raporu</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="raporIndir()">📥 İndir</button>
+                    </div>
+                </div>
+                <div class="rapor-ozet">
+                    <div class="rapor-kart">
+                        <h3>Bugünkü Satış</h3>
+                        <span class="rapor-sayi" id="bugunSatis">0.00 ₺</span>
+                    </div>
+                    <div class="rapor-kart">
+                        <h3>Sipariş Sayısı</h3>
+                        <span class="rapor-sayi" id="siparissayisi">0</span>
+                    </div>
+                    <div class="rapor-kart">
+                        <h3>Ortalama Hesap</h3>
+                        <span class="rapor-sayi" id="ortalamaHesap">0.00 ₺</span>
+                    </div>
+                    <div class="rapor-kart">
+                        <h3>Masa Doluluk</h3>
+                        <span class="rapor-sayi" id="masaDoluluk">%0</span>
+                    </div>
+                </div>
+                <div class="grafik-container">
+                </div>
+                <div class="en-cok-satan">
+                    <h3>En Çok Satan Ürünler</h3>
+                    <div id="enCokSatanListe" class="urun-liste">
+                    </div>
+                </div>
+            </div>
+
+            <div id="ayarlar" class="content-section">
+                <div class="section-header">
+                    <h2>⚙️ Sistem Ayarları</h2>
+                </div>
+                <div class="ayar-kategoriler">
+                    <div class="ayar-grup">
+                        <h3>Genel Ayarlar</h3>
+                        <div class="ayar-item">
+                            <label>Restoran Adı:</label>
+                            <input type="text" class="form-input" id="restoranAdi" value="Lezzet Durağı">
+                        </div>
+                        <!-- Masa sayısı ayarı eklendi -->
+                        <div class="ayar-item">
+                            <label for="masa-sayisi">Toplam Masa Sayısı:</label>
+                            <input type="number" id="masa-sayisi" class="form-input" value="20" min="1" max="100">
+                            <button class="btn btn-primary" onclick="masaSayisiGuncelle()">Güncelle</button>
+                        </div>
+                        <div class="ayar-item">
+                            <label for="bahsis-oran">Varsayılan Bahşiş Oranı (%)</label>
+                            <input type="number" id="bahsis-oran" class="form-input" value="10">
+                        </div>
+                        <button onclick="cikisYap()" class="btn btn-danger btn-large">Çıkış Yap</button>
+                    </div>
+                    <div class="ayar-grup">
+                        <h3>Görünüm Ayarları</h3>
+                        <div class="ayar-item">
+                            <label>Tema:</label>
+                            <select class="form-select" id="temaSec">
+                                <option value="acik">Açık Tema</option>
+                                <option value="koyu">Koyu Tema</option>
+                            </select>
+                        </div>
+                        <div class="ayar-item">
+                            <label>Dil:</label>
+                            <select class="form-select" id="dilSec">
+                                <option value="tr">Türkçe</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="ayar-grup">
+                        <h3>Veri Yönetimi</h3>
+                        <button class="btn btn-warning" onclick="verileriSifirla()">🗑️ Tüm Verileri Sıfırla</button>
+                        <button class="btn btn-info" onclick="verileriYedekle()">💾 Verileri Yedekle</button>
+                        <button class="btn btn-secondary" onclick="verileriGeriYukle()">📂 Yedekten Geri Yükle</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="modalOverlay" class="modal-overlay" onclick="modalKapat()"></div>
+
+        <div id="masaEkleModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Masa Ekle</h2>
+                    <button class="modal-close" onclick="modalKapat()">&times;</button>
+                </div>
+                <form id="masaEkleForm" onsubmit="masaEkleIslemi(event)">
+                    <div class="modal-body">
+                        <div class="form-grup">
+                            <label for="yeniMasaSayisi">Kaç adet masa eklemek istersiniz?</label>
+                            <input type="number" id="yeniMasaSayisi" class="form-input" min="1" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Ekle</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Masa Sil Modal - Yeni eklendi -->
+        <div id="masaSilModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Masa Sil</h2>
+                    <button class="modal-close" onclick="modalKapat()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-grup">
+                        <label for="silinecekMasa">Silinecek masayı seçin:</label>
+                        <select id="silinecekMasa" class="form-select" required>
+                            <option value="">Masa seçiniz...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="modalKapat()">İptal</button>
+                    <button type="button" class="btn btn-danger" onclick="masaSilOnay()">Sil</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="masaDetayModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="masaDetayBaslik"></h2>
+                    <button class="modal-close" onclick="modalKapat()">&times;</button>
+                </div>
+                <div class="modal-body" id="masaDetayBody">
+                </div>
+            </div>
+        </div>
+
+        <div id="urunEkleModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Yeni Ürün Ekle</h2>
+                    <button class="modal-close" onclick="modalKapat()">&times;</button>
+                </div>
+                <form id="urunEkleForm" onsubmit="urunKaydet(event)">
+                    <div class="modal-body">
+                        <div class="form-grup">
+                            <label for="urunAdi">Ürün Adı</label>
+                            <input type="text" id="urunAdi" class="form-input" required>
+                        </div>
+                        <div class="form-grup">
+                            <label for="urunKategori">Kategori</label>
+                            <select id="urunKategori" class="form-select" required>
+                                <option value="ana-yemek">Ana Yemek</option>
+                                <option value="salata">Salata</option>
+                                <option value="icecek">İçecek</option>
+                                <option value="tatli">Tatlı</option>
+                            </select>
+                        </div>
+                        <div class="form-grup">
+                            <label for="urunFiyat">Fiyat (₺)</label>
+                            <input type="number" id="urunFiyat" class="form-input" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="modalKapat()">İptal</button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="urunSecModal" class="modal">
+            <div class="modal-content modal-large">
+                <div class="modal-header">
+                    <h2 id="urunSecBaslik">Ürün Seçin</h2>
+                    <button class="modal-close" onclick="modalKapat()">&times;</button>
+                </div>
+                <div class="modal-body urun-secim-container">
+                    <div class="urun-secim-sol">
+                        <h4>Ürünler</h4>
+                        <div class="menu-kategoriler modal-kategoriler">
+                            <button class="kategori-btn active" onclick="modalKategoriFiltrele('hepsi')">Hepsi</button>
+                            <button class="kategori-btn" onclick="modalKategoriFiltrele('ana-yemek')">Ana Yemek</button>
+                            <button class="kategori-btn" onclick="modalKategoriFiltrele('salata')">Salata</button>
+                            <button class="kategori-btn" onclick="modalKategoriFiltrele('icecek')">İçecek</button>
+                            <button class="kategori-btn" onclick="modalKategoriFiltrele('tatli')">Tatlı</button>
+                        </div>
+                        <div id="urunSecimGrid" class="urun-secim-grid">
+                        </div>
+                    </div>
+                    <div class="urun-secim-sag">
+                        <h4>Seçilen Ürünler</h4>
+                        <div id="secilenUrunler" class="secilen-urunler-liste">
+                            <p>Lütfen ürün seçiniz.</p>
+                        </div>
+                        <button class="btn btn-success btn-large" onclick="urunSecimiTamamla()">Siparişi Tamamla</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fiş Yazdırma Modal - Yeni eklendi -->
+        <div id="fisYazdirModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Fiş Yazdır</h2>
+                    <button class="modal-close" onclick="modalKapat()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-grup">
+                        <label for="fisMasaSec">Masa Seçin:</label>
+                        <select id="fisMasaSec" class="form-select" onchange="fisIcerigiHazirla(this.value)">
+                            <option value="">Masa seçiniz...</option>
+                        </select>
+                    </div>
+                    <div id="fisIcerigi" class="fis-icerik" style="display: none;">
+                        <div id="fisDetay" class="fis-detay">
+                            <!-- Fiş içeriği buraya gelecek -->
+                        </div>
+                        <button class="btn btn-primary btn-large" onclick="fisYazdir()">🖨️ Yazdır</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="bildirim" class="bildirim"></div>
+    </div>
+
+    <script src="anasayfa.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Sayfa yüklendiğinde giriş ekranını göster
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('main-content').style.display = 'none';
+        });
+
+        function girisSecimi(kullaniciTipi) {
+            const passwordContainer = document.getElementById('password-container');
+            const loginError = document.getElementById('login-error');
+            window.seciliKullaniciTipi = kullaniciTipi; // Kullanıcı tipini global değişkene ata
+            
+            if (kullaniciTipi === 'yonetici') {
+                passwordContainer.style.display = 'block';
+                document.getElementById('password-input').focus();
+                loginError.style.display = 'none';
+            } else {
+                // Personel için doğrudan giriş yap
+                girisYap();
+            }
+        }
+
+        function girisYap() {
+            const passwordInput = document.getElementById('password-input').value;
+            const loginError = document.getElementById('login-error');
+            const appSifreleri = { yonetici: "2626" }; // Şifrenizi buraya koyun
+
+            if (window.seciliKullaniciTipi === 'yonetici') {
+                if (passwordInput !== appSifreleri.yonetici) {
+                    loginError.innerText = 'Hatalı şifre. Lütfen tekrar deneyin.';
+                    loginError.style.display = 'block';
+                    document.getElementById('password-input').value = '';
+                    document.getElementById('password-input').focus();
+                    return;
+                }
+            }
+            
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+            
+            // Menüleri göster/gizle
+            const navTabs = document.querySelector('.nav-tabs');
+            const raporlarTab = document.getElementById('raporlar-tab');
+            const ayarlarTab = document.getElementById('ayarlar-tab');
+            const personelCikisBtn = document.getElementById('personel-cikis-btn');
+
+            if (window.seciliKullaniciTipi === 'personel') {
+                raporlarTab.style.display = 'none';
+                ayarlarTab.style.display = 'none';
+                personelCikisBtn.style.display = 'block'; // Personel çıkış butonunu göster
+                showSection('masa-yonetimi');
+            } else {
+                raporlarTab.style.display = 'block';
+                ayarlarTab.style.display = 'block';
+                personelCikisBtn.style.display = 'none'; // Yönetici için gizle
+                showSection('masa-yonetimi');
+            }
+
+            bildirimGoster('Giriş başarılı!', 'success');
+            document.getElementById('password-input').value = '';
+            
+            // Eğer sayfaBaslangici fonksiyonu varsa çağır
+            if (typeof sayfaBaslangici === 'function') {
+                sayfaBaslangici();
+            }
+        }
+
+        function cikisYap() {
+            document.getElementById('main-content').style.display = 'none';
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('password-container').style.display = 'none';
+            document.getElementById('password-input').value = '';
+            document.getElementById('login-error').innerText = '';
+            document.getElementById('personel-cikis-btn').style.display = 'none';
+            window.seciliKullaniciTipi = '';
+            bildirimGoster('Güvenli çıkış yapıldı.', 'info');
+        }
+
+
+    </script>
+    <!-- Masa Adı Değiştir Modal -->
+<div id="masaAdDegistirModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Masa Adını Değiştir</h2>
+      <button class="modal-close" onclick="modalKapat()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="masaAdDegistirForm" onsubmit="masaAdDegistir(event)">
+        <div class="form-grup">
+          <label for="masaSecim">Masa Seç:</label>
+          <select id="masaSecim" required>
+            <option value="">Masa seçiniz...</option>
+          </select>
+        </div>
+        <div class="form-grup">
+          <label for="yeniMasaAdi">Yeni Ad:</label>
+          <input type="text" id="yeniMasaAdi" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Kaydet</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
